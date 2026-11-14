@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { HiOutlineSearch, HiOutlineAdjustments, HiOutlineX } from 'react-icons/hi';
 import { productAPI } from '../services/api';
@@ -16,25 +16,44 @@ const ProductListPage = () => {
   const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Filter states
-  const [search, setSearch] = useState(searchParams.get('search') || '');
-  const [category, setCategory] = useState(searchParams.get('category') || 'All');
-  const [sort, setSort] = useState(searchParams.get('sort') || 'newest');
-  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
-  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
-  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
+  // Directly read from URL searchParams
+  const search = searchParams.get('search') || '';
+  const category = searchParams.get('category') || 'All';
+  const sort = searchParams.get('sort') || 'newest';
+  const minPrice = searchParams.get('minPrice') || '';
+  const maxPrice = searchParams.get('maxPrice') || '';
+  const page = Number(searchParams.get('page')) || 1;
 
-  // Helper for mock fallback filtering & sorting
-  const filterMockProducts = () => {
+  // Helper to update specific URL searchParams cleanly
+  const updateParams = useCallback((newParams) => {
+    setSearchParams(prev => {
+      const updated = new URLSearchParams(prev);
+      Object.entries(newParams).forEach(([key, value]) => {
+        if (value === '' || value === null || value === undefined || (key === 'category' && value === 'All') || (key === 'sort' && value === 'newest') || (key === 'page' && value === 1)) {
+          updated.delete(key);
+        } else {
+          updated.set(key, String(value));
+        }
+      });
+      return updated;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  // Client-side fallback filter & sort over MOCK_PRODUCTS
+  const filterMockProducts = useMemo(() => {
     let list = [...MOCK_PRODUCTS];
 
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(p => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || p.tags?.some(t => t.toLowerCase().includes(q)));
+      list = list.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.tags?.some(t => t.toLowerCase().includes(q))
+      );
     }
 
     if (category && category !== 'All') {
-      list = list.filter(p => p.category === category);
+      list = list.filter(p => p.category.toLowerCase() === category.toLowerCase());
     }
 
     if (minPrice) {
@@ -53,6 +72,8 @@ const ProductListPage = () => {
       list.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
     } else if (sort === 'rating') {
       list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else {
+      // default newest
     }
 
     const limit = 12;
@@ -62,9 +83,10 @@ const ProductListPage = () => {
     const paginated = list.slice(start, start + limit);
 
     return { products: paginated, pagination: { total, page, pages, limit } };
-  };
+  }, [search, category, sort, minPrice, maxPrice, page]);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchProducts = async () => {
       setLoading(true);
       try {
@@ -75,51 +97,35 @@ const ProductListPage = () => {
         if (maxPrice) params.maxPrice = Number(maxPrice) * 100;
 
         const { data } = await productAPI.getProducts(params);
-        if (data.success && data.products && data.products.length > 0) {
-          setProducts(data.products);
-          setPagination(data.pagination);
-        } else {
-          // Fallback to local catalog
-          const fallback = filterMockProducts();
-          setProducts(fallback.products);
-          setPagination(fallback.pagination);
+        if (isMounted) {
+          if (data?.success && data?.products && data.products.length > 0) {
+            setProducts(data.products);
+            setPagination(data.pagination);
+          } else {
+            setProducts(filterMockProducts.products);
+            setPagination(filterMockProducts.pagination);
+          }
         }
       } catch {
-        // API offline or not seeded yet -> graceful fallback
-        const fallback = filterMockProducts();
-        setProducts(fallback.products);
-        setPagination(fallback.pagination);
+        if (isMounted) {
+          setProducts(filterMockProducts.products);
+          setPagination(filterMockProducts.pagination);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [search, category, sort, minPrice, maxPrice, page]);
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (search) params.set('search', search);
-    if (category !== 'All') params.set('category', category);
-    if (sort !== 'newest') params.set('sort', sort);
-    if (minPrice) params.set('minPrice', minPrice);
-    if (maxPrice) params.set('maxPrice', maxPrice);
-    if (page > 1) params.set('page', page);
-    setSearchParams(params, { replace: true });
-  }, [search, category, sort, minPrice, maxPrice, page, setSearchParams]);
+    return () => { isMounted = false; };
+  }, [search, category, sort, minPrice, maxPrice, page, filterMockProducts]);
 
   const clearFilters = () => {
-    setSearch('');
-    setCategory('All');
-    setSort('newest');
-    setMinPrice('');
-    setMaxPrice('');
-    setPage(1);
+    setSearchParams({}, { replace: true });
   };
 
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    setPage(1);
+  const handleSearchChange = (e) => {
+    updateParams({ search: e.target.value, page: 1 });
   };
 
   return (
@@ -133,7 +139,11 @@ const ProductListPage = () => {
             <p className="product-list-count">{pagination.total} products available</p>
           </div>
           <div className="product-list-controls">
-            <select className="sort-select" value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }}>
+            <select
+              className="sort-select"
+              value={sort}
+              onChange={(e) => updateParams({ sort: e.target.value, page: 1 })}
+            >
               <option value="newest">Newest First</option>
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
@@ -151,9 +161,9 @@ const ProductListPage = () => {
           <HiOutlineSearch className="search-icon" />
           <input
             type="text"
-            placeholder="Search by product name, fabric, or category..."
+            placeholder="Search by product name, fabric, or tag..."
             value={search}
-            onChange={handleSearch}
+            onChange={handleSearchChange}
           />
         </div>
 
@@ -170,12 +180,15 @@ const ProductListPage = () => {
             <div className="filter-group">
               <h3>Category</h3>
               {CATEGORIES.map(cat => (
-                <label key={cat} className={`filter-option ${category === cat ? 'active' : ''}`}>
+                <label key={cat} className={`filter-option ${category.toLowerCase() === cat.toLowerCase() ? 'active' : ''}`}>
                   <input
                     type="radio"
                     name="category"
-                    checked={category === cat}
-                    onChange={() => { setCategory(cat); setPage(1); }}
+                    checked={category.toLowerCase() === cat.toLowerCase()}
+                    onChange={() => {
+                      updateParams({ category: cat, page: 1 });
+                      setFiltersOpen(false);
+                    }}
                     style={{ display: 'none' }}
                   />
                   {cat}
@@ -190,14 +203,14 @@ const ProductListPage = () => {
                   type="number"
                   placeholder="Min"
                   value={minPrice}
-                  onChange={(e) => { setMinPrice(e.target.value); setPage(1); }}
+                  onChange={(e) => updateParams({ minPrice: e.target.value, page: 1 })}
                 />
                 <span>—</span>
                 <input
                   type="number"
                   placeholder="Max"
                   value={maxPrice}
-                  onChange={(e) => { setMaxPrice(e.target.value); setPage(1); }}
+                  onChange={(e) => updateParams({ maxPrice: e.target.value, page: 1 })}
                 />
               </div>
             </div>
@@ -222,10 +235,10 @@ const ProductListPage = () => {
             ) : products.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">🔍</div>
-                <h3>No matching products</h3>
-                <p>We couldn't find items matching your criteria.</p>
+                <h3>No products found in {category !== 'All' ? category : 'catalog'}</h3>
+                <p>Try clearing filters or searching for something else.</p>
                 <button className="btn btn-secondary" onClick={clearFilters} style={{ marginTop: 'var(--space-lg)' }}>
-                  Reset Filters
+                  View All Products
                 </button>
               </div>
             ) : (
@@ -240,7 +253,7 @@ const ProductListPage = () => {
                   <div className="pagination">
                     <button
                       disabled={page <= 1}
-                      onClick={() => setPage(p => p - 1)}
+                      onClick={() => updateParams({ page: page - 1 })}
                     >
                       Previous
                     </button>
@@ -248,14 +261,14 @@ const ProductListPage = () => {
                       <button
                         key={i + 1}
                         className={page === i + 1 ? 'active' : ''}
-                        onClick={() => setPage(i + 1)}
+                        onClick={() => updateParams({ page: i + 1 })}
                       >
                         {i + 1}
                       </button>
                     ))}
                     <button
                       disabled={page >= pagination.pages}
-                      onClick={() => setPage(p => p + 1)}
+                      onClick={() => updateParams({ page: page + 1 })}
                     >
                       Next
                     </button>

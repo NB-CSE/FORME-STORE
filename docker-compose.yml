@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: forme-mongodb
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: forme
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: forme-server
+    restart: always
+    ports:
+      - '5000:5000'
+    environment:
+      PORT: 5000
+      NODE_ENV: development
+      MONGODB_URI: mongodb://mongodb:27017/forme
+      JWT_SECRET: forme_dev_secret_key_change_in_production_2024
+      CLIENT_URL: http://localhost:5173
+    depends_on:
+      - mongodb
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: forme-client
+    restart: always
+    ports:
+      - '5173:5173'
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+    depends_on:
+      - server
+
+volumes:
+  mongo-data:
+

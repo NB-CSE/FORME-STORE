@@ -1,6 +1,19 @@
 # FORME — Premium E-Commerce Website
 
+[![Live Store](https://img.shields.io/badge/Live%20Store-forme--store.onrender.com-success?style=for-the-badge&logo=render)](https://forme-store.onrender.com)
+[![Backend API](https://img.shields.io/badge/API-Online-blue?style=for-the-badge&logo=express)](https://forme-backend-api.onrender.com/api/health)
+
 A modern, minimalist full-stack e-commerce web application built with React, Vite, Node.js, Express.js, and MongoDB Atlas.
+
+---
+
+## 🌐 Live Production Links
+
+- 🛍️ **Live Online Store:** **[https://forme-store.onrender.com](https://forme-store.onrender.com)**
+- ⚙️ **Backend REST API:** **[https://forme-backend-api.onrender.com/api/health](https://forme-backend-api.onrender.com/api/health)**
+- 🎛️ **Admin Dashboard:** **[https://forme-store.onrender.com/admin](https://forme-store.onrender.com/admin)**
+
+*(Note: The live site is hosted on Render at the links above, not on GitHub Pages).*
 
 ---
 
@@ -10,7 +23,7 @@ A modern, minimalist full-stack e-commerce web application built with React, Vit
 - **Warm Gray:** `#D6D0C6` (Secondary Accents)
 - **White:** `#FFFFFF` (Cards & Containers)
 - **Border Tone:** `#DEDAD2` (Dividers & Inputs)
-- **Fonts:** Playfair Display (Headers) & Inter (Body)
+- **Typography:** Playfair Display (Headers) & Inter (Body)
 
 ---
 
@@ -23,7 +36,18 @@ A modern, minimalist full-stack e-commerce web application built with React, Vit
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## ✨ Features Included
+1. **Homepage:** Premium hero section, brand pillars, visual category cards, curated featured products, brand ethos statement, and directory footer.
+2. **Product Catalog:** Real-time search, category filters (Clothing, Accessories, Footwear, Bags, Beauty, Home), price slider, and sorting.
+3. **Product Details:** Multi-angle image gallery, size picker, color swatches, quantity counter, and stock indicator.
+4. **Shopping Cart:** Persistent cart in browser storage, automatic 18% GST and free shipping calculations.
+5. **Checkout & Payment:** Shipping address collection, Razorpay test payment integration, and instant demo payment fallback.
+6. **Orders:** Customer order list and detailed tracking receipts.
+7. **Admin Dashboard:** Total revenue overview, order status updater, and product creator.
+
+---
+
+## 🚀 Local Development Setup
 
 ### 1. Backend Setup
 ```bash
@@ -73,65 +97,8 @@ To populate MongoDB Atlas with the 12 curated products and the default admin use
 cd server
 npm run seed
 ```
-- **Admin Email:** `admin@forme.com`
-- **Admin Password:** `Admin@123`
-
----
-
-## 🌐 Production Deployment Guide
-
-### A. Deploy Backend to Render (render.com)
-1. Push your repository to GitHub.
-2. Sign up on [Render.com](https://render.com) and click **New Web Service**.
-3. Connect your GitHub repo.
-4. Set:
-   - **Root Directory:** `server`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-5. Under **Environment Variables**, add:
-   - `NODE_ENV` = `production`
-   - `MONGODB_URI` = *(your MongoDB Atlas URI)*
-   - `JWT_SECRET` = *(a strong random key)*
-   - `CLIENT_URL` = *(your deployed frontend Vercel URL)*
-   - `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` = *(optional, test keys)*
-6. Click **Deploy Web Service**. Copy your backend URL (e.g., `https://forme-backend.onrender.com`).
-
-### B. Deploy Frontend to Vercel (vercel.com)
-1. Sign up on [Vercel](https://vercel.com) and click **Add New Project**.
-2. Select your repository.
-3. Set:
-   - **Framework Preset:** `Vite`
-   - **Root Directory:** `client`
-4. Under **Environment Variables**, add:
-   - `VITE_API_URL` = `https://forme-backend.onrender.com/api`
-   - `VITE_RAZORPAY_KEY_ID` = *(optional, test key)*
-5. Click **Deploy**. Your store is live on your custom `.vercel.app` domain.
-
----
-
-## 📁 Project Structure
-```text
-E-com Web/
-├── client/                     # React + Vite Frontend
-│   ├── src/
-│   │   ├── components/         # Navbar, Footer, Hero, ProductCard, Category, Loading
-│   │   ├── context/            # AuthContext, CartContext
-│   │   ├── data/               # Curated fallback mock product catalogue
-│   │   ├── pages/              # Home, ProductList, ProductDetail, Cart, Checkout, Orders, Admin
-│   │   ├── services/           # Axios API client
-│   │   └── styles/             # Global & modular CSS with CSS variables
-│   ├── index.html
-│   └── package.json
-└── server/                     # Express REST API Backend
-    ├── config/                 # MongoDB Mongoose connection
-    ├── controllers/            # Auth, Product, Cart, Order, Payment, Admin controllers
-    ├── middleware/             # JWT auth & body input validation
-    ├── models/                 # User, Product, Order, Cart schemas
-    ├── routes/                 # Express API routes
-    ├── scripts/                # Database seeder script
-    ├── server.js               # Entry point
-    └── package.json
-```
+- **Default Admin Account:** `admin@forme.com`
+- **Default Admin Password:** `Admin@123`
 
 ---
 

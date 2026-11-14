@@ -25,9 +25,13 @@ const ProductCard = ({ product }) => {
     <div className="product-card" onClick={() => navigate(`/products/${product._id}`)}>
       <div className="product-card-image">
         <img
-          src={product.images?.[0] || 'https://via.placeholder.com/400x500?text=No+Image'}
+          src={product.images?.[0] || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800'}
           alt={product.name}
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800';
+          }}
         />
 
         {discount > 0 && <span className="product-card-badge">{discount}% Off</span>}

@@ -106,7 +106,7 @@ const sampleProducts = [
     category: 'Home',
     images: [
       'https://images.unsplash.com/photo-1602928321679-560bb453f190?w=800',
-      'https://images.unsplash.com/photo-1600612253971-422e4e9a1260?w=800'
+      'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=800'
     ],
     stock: 40,
     sizes: ['Free Size'],
@@ -123,8 +123,8 @@ const sampleProducts = [
     originalPrice: 299900,
     category: 'Accessories',
     images: [
-      'https://images.unsplash.com/photo-1601924994987-69e26d50dc64?w=800',
-      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800'
+      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800',
+      'https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=800'
     ],
     stock: 35,
     sizes: ['Free Size'],
@@ -177,8 +177,8 @@ const sampleProducts = [
     originalPrice: 499900,
     category: 'Clothing',
     images: [
-      'https://images.unsplash.com/photo-1434389677669-e08b4cda3a56?w=800',
-      'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800'
+      'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800',
+      'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800'
     ],
     stock: 18,
     sizes: ['S', 'M', 'L', 'XL'],

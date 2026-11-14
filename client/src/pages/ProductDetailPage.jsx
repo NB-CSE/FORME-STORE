@@ -77,9 +77,13 @@ const ProductDetailPage = () => {
         <div>
           <div style={{ aspectRatio: '3/4', borderRadius: 'var(--border-radius-lg)', overflow: 'hidden', backgroundColor: 'var(--color-white)', marginBottom: 'var(--space-md)' }}>
             <img
-              src={product.images?.[selectedImage] || 'https://via.placeholder.com/600x800'}
+              src={product.images?.[selectedImage] || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800'}
               alt={product.name}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800';
+              }}
             />
           </div>
           {product.images?.length > 1 && (
